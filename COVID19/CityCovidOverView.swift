@@ -34,7 +34,7 @@ struct CovidOverView: Codable {
     let totalCase: String
     let recovered: String
     let death: String
-    let percentage: String
+    let percentage: Stri
     let newFcase: String
     let newCcase: String
 }

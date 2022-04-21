@@ -13,12 +13,19 @@ class ViewController: UIViewController {
     @IBOutlet weak var totalCaseLebel: UILabel!
     @IBOutlet weak var nesCaseLebel: UILabel!
     @IBOutlet weak var pieChartView: PieChartView!
+    @IBOutlet weak var indicator: UIActivityIndicatorView!
+    @IBOutlet weak var labelStackView: UIStackView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        self.indicator.startAnimating()
         self.fetchCovidOverView { [weak self] result in
             guard let self = self else { return }
+            self.indicator.stopAnimating()
+            self.indicator.isHidden = true
+            self.labelStackView.isHidden = false
+            self.pieChartView.isHidden = false
             switch result {
             case let .success(result):
                 self.configureStackView(KoreaCovidOverView: result.korea)
@@ -50,6 +57,7 @@ class ViewController: UIViewController {
     }
     
     func configureChatView(covidOverViewList: [CovidOverView]) {
+        self.pieChartView.delegate = self
         let entries = covidOverViewList.compactMap { [weak self] overview -> PieChartDataEntry? in
             guard let self = self else { return nil }
             return PieChartDataEntry(
@@ -111,3 +119,11 @@ class ViewController: UIViewController {
     }
 }
 
+extension ViewController: ChartViewDelegate {
+    func chartValueSelected(_ chartView: ChartViewBase, entry: ChartDataEntry, highlight: Highlight) {
+        guard let covidDetailController = self.storyboard?.instantiateViewController(withIdentifier: "CovidDetailTableViewController") as? CovidDetailTableViewController else { return }
+        guard let covidOverView = entry.data as? CovidOverView else { return }
+        covidDetailController.covidOverView = covidOverView
+        self.navigationController?.pushViewController(covidDetailController, animated: true)
+    }
+}
